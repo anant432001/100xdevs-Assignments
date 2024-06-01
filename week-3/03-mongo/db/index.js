@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-
+const uri = "mongodb+srv://admin:admin%40123@cluster0.8wnnoy6.mongodb.net/myLatestDataBase"
 // Connect to MongoDB
-mongoose.connect('your-mongodb-url');
+mongoose.connect('mongodb+srv://admin:admin%40123@cluster0.8wnnoy6.mongodb.net/');
 
 // Define schemas
 const AdminSchema = new mongoose.Schema({

@@ -1,0 +1,1 @@
+Hello, world! This is written from a js file, using the fs functionality

@@ -19,4 +19,4 @@ router.get('/purchasedCourses', userMiddleware, (req, res) => {
     // Implement fetching purchased courses logic
 });
 
-module.exports = router
+module.exports = router 
