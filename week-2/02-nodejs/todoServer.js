@@ -39,11 +39,96 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-  const express = require('express');
-  const bodyParser = require('body-parser');
+  // const express = require('express');
+  // const bodyParser = require('body-parser');
   
-  const app = express();
+  // const app = express();
   
-  app.use(bodyParser.json());
+  // app.use(bodyParser.json());
   
-  module.exports = app;
+  // module.exports = app;
+
+const express = require('express');
+const fs = require('fs');
+const app = express();
+app.use(express.json());
+
+let todos = [];
+const todoFilePath = 'todos.json';
+
+// Load todos from file
+function loadTodosFromFile() {
+  try {
+    const data = fs.readFileSync(todoFilePath);
+    todos = JSON.parse(data);
+  } catch (err) {
+    todos = [];
+  }
+}
+
+// Save todos to file
+function saveTodosToFile() {
+  fs.writeFileSync(todoFilePath, JSON.stringify(todos, null, 2));
+}
+
+// Load todos when the server starts
+loadTodosFromFile();
+
+// Middleware for checking todo existence
+function checkTodoExists(req, res, next) {
+  const id = req.params.id;
+  const todo = todos.find(todo => todo.id === parseInt(id));
+  if (!todo) {
+    return res.status(404).json({ error: 'Todo not found' });
+  }
+  req.todo = todo;
+  next();
+}
+
+// GET all todos
+app.get('/todos', (req, res) => {
+  res.status(200).json(todos);
+});
+
+// GET todo by ID
+app.get('/todos/:id', checkTodoExists, (req, res) => {
+  res.status(200).json(req.todo);
+});
+
+// POST a new todo
+app.post('/todos', (req, res) => {
+  const todo = req.body;
+  todo.id = todos.length + 1;
+  todos.push(todo);
+  saveTodosToFile();
+  res.status(201).json({ id: todo.id });
+});
+
+// PUT update todo by ID
+app.put('/todos/:id', checkTodoExists, (req, res) => {
+  const id = req.params.id;
+  const updatedTodo = req.body;
+  todos = todos.map(todo => {
+    if (todo.id === parseInt(id)) {
+      return Object.assign(todo, updatedTodo, { id: parseInt(id) });
+    }
+    return todo;
+  });
+  saveTodosToFile();
+  res.status(200).json({ message: 'Todo updated successfully' });
+});
+
+// DELETE todo by ID
+app.delete('/todos/:id', checkTodoExists, (req, res) => {
+  const id = req.params.id;
+  todos = todos.filter(todo => todo.id !== parseInt(id));
+  saveTodosToFile();
+  res.status(200).json({ message: 'Todo deleted successfully' });
+});
+
+// Handle undefined routes
+app.use("*",(req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+module.exports = app;
